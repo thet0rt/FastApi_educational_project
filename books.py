@@ -22,9 +22,9 @@ async def read_all_books(skip_book: Optional[str] = None):
         return new_books
     return BOOKS
 
-@app.get('/{book_name}')
-async def read_book(book_name: str):
-    return BOOKS[book_name]
+# @app.get('/{book_name}')
+# async def read_book(book_name: str):
+#     return BOOKS[book_name]
 
 @app.post('/')
 async def create_book(book_title, book_author):
@@ -45,11 +45,19 @@ async def update_book(book_name: str, book_title: str, book_author: str):
     BOOKS[book_name] = book_information
     return book_information
 
-@app.delete('/{book_name}')
-async def delete_book(book_name: str):
-    del BOOKS[book_name]
-    return f'book {book_name} has been deleted'
+# @app.delete('/{book_name}')
+# async def delete_book(book_name: str):
+#     del BOOKS[book_name]
+#     return f'book {book_name} has been deleted'
 
+@app.get('/read_book')
+async def read_book(book_name: str = None):
+    return BOOKS[book_name]
+
+@app.delete('/')
+async def delete_book(book_name: str = None):
+    del BOOKS[book_name]
+    return f'Book {book_name} has been deleted'
 
 
 
