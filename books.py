@@ -45,6 +45,12 @@ async def update_book(book_name: str, book_title: str, book_author: str):
     BOOKS[book_name] = book_information
     return book_information
 
+@app.delete('/{book_name}')
+async def delete_book(book_name: str):
+    del BOOKS[book_name]
+    return f'book {book_name} has been deleted'
+
+
 
 
 
