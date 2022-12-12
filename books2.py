@@ -50,6 +50,16 @@ async def create_book(book: Book):
     BOOKS.append(book)
     return book
 
+@app.get('/book/{book_id}')
+async def read_book(book_id: UUID):
+    for x in BOOKS:
+        if x.id == book_id:
+            return x
+
+
+
+
+
 
 def create_book_no_api():
     book_1 = Book(id='82c19c62-ce42-4b88-8dd9-8b5e408c2ba6',
@@ -76,6 +86,7 @@ def create_book_no_api():
     BOOKS.append(book_2)
     BOOKS.append(book_3)
     BOOKS.append(book_4)
+
 
 
 
