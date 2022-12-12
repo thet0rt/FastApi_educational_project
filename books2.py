@@ -56,7 +56,14 @@ async def read_book(book_id: UUID):
         if x.id == book_id:
             return x
 
-
+@app.put('/{book_id}')
+async def update_book(book_id: UUID, book: Book):
+    counter = 0
+    for x in BOOKS:
+        counter += 1
+        if x.id == book_id:
+            BOOKS[counter - 1] = book
+            return BOOKS[counter - 1]
 
 
 
