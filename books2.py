@@ -16,6 +16,17 @@ class Book(BaseModel):
                              max_length=100)
     rating: int = Field(gt=-1, lt=101)
 
+    class Config:
+        schema_extra = {
+            'example': {
+                'id': '11c19c62-ce42-4b88-8dd9-8b5e408c2ba6',
+                'title': 'A game of thrones',
+                'author': 'George R.R. Martin',
+                'description': 'You win or you die. Tertium non datur.',
+                'rating': 90
+            }
+        }
+
 
 
 BOOKS =[]
