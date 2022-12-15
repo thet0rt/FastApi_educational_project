@@ -53,8 +53,15 @@ async def negative_number_exception_handler(request: Request,
     )
 
 @app.post('/books/login')
-async def book_login(username: str = Form(), password: str = Form()):
-    return {'username': username, 'password': password}
+async def book_login(book_id: UUID,
+                     username: str = Header(None),
+                     password: str = Header(None)):
+    if username == 'FastAPIUser' and password == 'test1234':
+        for x in BOOKS:
+            if x.id == book_id:
+                return x
+        raise raise_item_cannot_be_found_exception()
+    return 'Invalid User'
 
 @app.get('/header')
 async def read_header(random_header: Optional[str] = Header(None)):
