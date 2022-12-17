@@ -7,7 +7,13 @@ import models
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from datetime import datetime, timedelta
+from jose import jwt, JWTError
+
+
+SECRET_KEY = 'H+KbPeShVmYq3t6w9z$C&F)J@NcQfTjWnZr4u7x!A%D*G-KaPdSgUkXp2s5v8y/B'
+ALGORITHM = 'HS256'
 
 class CreateUser(BaseModel):
     username: str = Field(min_length=5, max_length=15)
@@ -19,6 +25,8 @@ class CreateUser(BaseModel):
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 models.Base.metadata.create_all(bind=engine)
+
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl='token')
 
 
 app = FastAPI()
@@ -48,13 +56,42 @@ def authenticate_user(username: str, password: str, db):
         return False
     return user
 
+def create_access_token(username: str, user_id: int,
+                        expires_delta: Optional[timedelta] = None):
+    encode = {'sub': username, 'id': user_id}
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    encode.update({'exp': expire})
+    return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+
+
 @app.post('/token')
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
                                  db: Session = Depends(get_db)):
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
-    return 'User validated'
+    token_expires = timedelta(minutes=20)
+    token = create_access_token(user.username,
+                                user.id,
+                                expires_delta=token_expires)
+    return {'token': token}
+
+async def get_current_user(token: str = Depends(oauth2_bearer)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get('sub')
+        user_id: str = payload.get('id')
+        if username is None or user_id is None:
+            raise HTTPException(404, detail='User not found')
+        return {'username': username,
+                'id': user_id}
+    except JWTError:
+        raise HTTPException(status_code=404, detail="User not found")
 
 
 @app.post('/create/user')
