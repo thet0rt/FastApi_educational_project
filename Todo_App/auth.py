@@ -1,12 +1,13 @@
 from typing import Optional
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 import models
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
+from fastapi.security import OAuth2PasswordRequestForm
 
 class CreateUser(BaseModel):
     username: str = Field(min_length=5, max_length=15)
@@ -33,6 +34,28 @@ def get_db():
 def get_password_hash(password):
     return bcrypt_context.hash(password)
 
+def verify_password(plain_password, hashed_password):
+    print(bcrypt_context.verify(plain_password, hashed_password))
+    return bcrypt_context.verify(plain_password, hashed_password)
+
+def authenticate_user(username: str, password: str, db):
+    user = db.query(models.Users)\
+        .filter(models.Users.username == username)\
+        .first()
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+
+@app.post('/token')
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
+                                 db: Session = Depends(get_db)):
+    user = authenticate_user(form_data.username, form_data.password, db)
+    if not user:
+        raise HTTPException(status_code=404, detail='User not found')
+    return 'User validated'
+
 
 @app.post('/create/user')
 async def create_new_user(create_user: CreateUser, db: Session = Depends(get_db)):
@@ -46,3 +69,11 @@ async def create_new_user(create_user: CreateUser, db: Session = Depends(get_db)
     create_user_model.is_active = True
     db.add(create_user_model)
     db.commit()
+    return successful_response(201)
+
+
+def successful_response(status_code: int):
+    return {
+        'status_code': status_code,
+        'transaction': 'successful'
+    }
