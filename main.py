@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends
-from routers import auth, todos, users
+from routers import auth, todos, users, address
 from company import companyapis, dependencies
 app = FastAPI()
 app.include_router(auth.router)
@@ -11,3 +11,4 @@ app.include_router(companyapis.router,
                    dependencies=[Depends(dependencies.get_token_header)]
                    )
 app.include_router(users.router)
+app.include_router(address.router)
