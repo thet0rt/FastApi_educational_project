@@ -31,6 +31,7 @@ class Address(BaseModel):
     state: str
     country: str
     postalcode: str
+    apt_num: Optional[int]
 
 @router.post('/')
 async def add_address(
@@ -48,6 +49,7 @@ async def add_address(
     new_address.city = address.city
     new_address.country = address.country
     new_address.postalcode = address.postalcode
+    new_address.apt_num = address.apt_num
 
     db.add(new_address)
     db.flush()
